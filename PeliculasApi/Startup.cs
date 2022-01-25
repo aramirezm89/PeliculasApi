@@ -29,7 +29,7 @@ namespace PeliculasApi
              * de la defaultConnection que se encuentra declarada en appsettings.json
              */
             services.AddDbContext<ApplicationDbContext>(options => 
-            options.UseSqlServer(Configuration.GetConnectionString("defaultConnection")));
+            options.UseSqlServer(Configuration.GetConnectionString("LocalHostConnection")));
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
 

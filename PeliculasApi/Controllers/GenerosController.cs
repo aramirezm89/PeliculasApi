@@ -34,10 +34,27 @@ namespace PeliculasApi.Controllers
         [HttpGet]
         public async Task<ActionResult<List<GeneroDTO>>> Get([FromQuery] PaginacionDTO paginacionDTO)
         {
-
+            /*
+             * la variable generosQueryable contiene los elementos de la tabla Generos y se utilizo
+             * AsQueryable() ya que el metodo InsertarParametrosEnCabecera() recibe este tipo de dato como 
+             * parametro.
+             * Metodo InsertarParametrosEnCabecera: su logica se encuentra en la clase HttpContextExtensions la 
+             * cual se utilizoo para hacen un metodo de   extension de HttpContext
+             */
             var generosQueryable =  _db.Generos.AsQueryable();
             await HttpContext.InsertarParametrosEnCabecera(generosQueryable);
+
+            /*
+             * La variable generos contiene un listado en el  cual se utiliza el metodo Paginar() el cual su logica
+             * se encuentra en la clase IQueryableExtensions la cual recibe un objeto de tipo PaginacionDTO con el fin 
+             * de paginar el resultado de la consulta.
+             */
             var generos = await generosQueryable.OrderBy(x => x.Nombre).Paginar(paginacionDTO).ToListAsync();
+
+            /*
+             * El retorno es una lista de tipo GeneroDTO por lo cual se utiliza mapper para mapear la variable generos la
+             * cual es de tipo Genero a GeneroDTO que es el tipo de dato que requiere como retorno la funcion.
+             */
             return mapper.Map<List<GeneroDTO>>(generos); 
         }
 
@@ -47,7 +64,11 @@ namespace PeliculasApi.Controllers
 
         public async Task<ActionResult<GeneroDTO>> GetForId([FromRoute] int id)
         {
-            var genero = await _db.Generos.FindAsync(id);
+            var genero = await _db.Generos.FirstOrDefaultAsync(g => g.Id == id);
+            if(genero == null)
+            {
+                return NotFound();  
+            }
             return mapper.Map<GeneroDTO>(genero);
           
         }
@@ -55,31 +76,59 @@ namespace PeliculasApi.Controllers
         [HttpPost]
         public async Task<ActionResult> Post([FromBody] GeneroCreacionDTO generoCreacionDTO)
         {
-                 var genero = mapper.Map<Genero>(generoCreacionDTO);
+            var ValidarGeneroRepetido = await _db.Generos.FirstOrDefaultAsync(g => g.Nombre == generoCreacionDTO.Nombre);
+
+            if(ValidarGeneroRepetido == null)
+            {
+                var genero = mapper.Map<Genero>(generoCreacionDTO);
                 _db.Add(genero);
                 await _db.SaveChangesAsync();
-                return new JsonResult(new { succes=true, message="Registro guardado con exito.",code=200});
-           
-       
-            
+                return new JsonResult(new { succes = true, message = "Registro guardado.", code = 200 });
+
+            }
+
+            return new JsonResult(new { succes = false, message = "El  genero ya se encuentra en la base de datos.", code = 500 });
+
         }
 
-        [HttpPut]
+        [HttpPut("{id:int}")]
         public async Task< ActionResult >Put([FromBody] GeneroCreacionDTO generoCreacion,[FromRoute] int id)
         {
             var genero = await _db.Generos.FirstOrDefaultAsync(x => x.Id == id);
+
+            if(genero == null)
+            {
+                return NotFound();
+            }
             genero.Nombre = generoCreacion.Nombre;
             _db.Update(genero);
             await _db.SaveChangesAsync();
-            return new JsonResult(new { succes = true, message = "Registro actualziado con exito.", code = 200 });
+            return new JsonResult(new { succes = true, message = "Registro actualizado.", code = 200 });
         }
 
-        [HttpDelete]
+        [HttpDelete("{id:int}")]
 
-        public ActionResult Delete()
+        public async Task<ActionResult> Delete([FromRoute] int id)
         {
-            throw new NotImplementedException();
+            if(id == 0)
+            {
+                return new JsonResult(new { succes = false, message = "Error", code = 404 });
+            }
 
+            var genero = await _db.Generos.FirstOrDefaultAsync(g => g.Id == id);
+
+            if(genero != null)
+            {
+                _db.Generos.Remove(genero);
+               await _db.SaveChangesAsync();
+                return new JsonResult(new { succes = false, message = "Registro eliminado", code = 200 });
+            }
+            else
+            {
+                return new JsonResult(new { succes = false, message = "El Registro que desea eliminar no existe en la base de datos.", code = 404 });
+            }
+
+           
         }
 
 
