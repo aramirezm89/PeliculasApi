@@ -8,6 +8,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using PeliculasApi.APiBehavior;
 using PeliculasApi.Filtros;
+using PeliculasApi.Utils;
 
 namespace PeliculasApi
 {
@@ -24,6 +25,16 @@ namespace PeliculasApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddAutoMapper(typeof(Startup));//implementacion de AUTOMAPPER
+
+
+            /*
+             * implementacion del servicio para la ejecucion de guardar borrar o editar archivos en AZURE
+             */
+
+            services.AddTransient<IAlmacenadorArchivos, AlmacenadorAzureStorage>();
+
+
+
             /*
              * implementacion de la Class ApplicationDbContext y su conexion a bse de datos por medio
              * de la defaultConnection que se encuentra declarada en appsettings.json

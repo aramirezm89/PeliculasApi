@@ -13,5 +13,6 @@ namespace PeliculasApi.Entidades
         public DateTime FechaNacimiento { get; set; }
         public string Foto { get; set; }
 
+
     }
 }
