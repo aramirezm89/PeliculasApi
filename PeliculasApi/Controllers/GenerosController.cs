@@ -62,7 +62,7 @@ namespace PeliculasApi.Controllers
 
         [HttpGet("{id:int}")]
 
-        public async Task<ActionResult<GeneroDTO>> GetForId([FromRoute] int id)
+        public async Task<ActionResult<GeneroDTO>> Get([FromRoute] int id)
         {
             var genero = await _db.Generos.FirstOrDefaultAsync(g => g.Id == id);
             if(genero == null)

@@ -29,11 +29,13 @@ namespace PeliculasApi
 
             /*
              * implementacion del servicio para la ejecucion de guardar borrar o editar archivos en AZURE
+             * 
+             * si queremos guardar los archivos solo de forma local usamos la clase AlmacenadorArchivosLocal
              */
 
             services.AddTransient<IAlmacenadorArchivos, AlmacenadorAzureStorage>();
 
-
+            services.AddHttpContextAccessor();
 
             /*
              * implementacion de la Class ApplicationDbContext y su conexion a bse de datos por medio
@@ -94,7 +96,7 @@ namespace PeliculasApi
             }
 
             app.UseHttpsRedirection();
-
+            app.UseStaticFiles();   
             app.UseRouting();
 
             app.UseCors();

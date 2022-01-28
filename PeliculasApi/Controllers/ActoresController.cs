@@ -6,6 +6,7 @@ using System.Linq;
 using PeliculasApi.Entidades;
 using Microsoft.EntityFrameworkCore;
 using PeliculasApi.Utils;
+using System.Collections.Generic;
 
 namespace PeliculasApi.Controllers
 {
@@ -24,6 +25,47 @@ namespace PeliculasApi.Controllers
             this.mapper = mapper;
             this.almacenadorArchivos = almacenadorArchivos;
         }
+
+        [HttpGet]   
+        public async Task<ActionResult<List<ActorDTO>>> Get([FromQuery] PaginacionDTO paginacionDTO)
+        {
+            /*
+             * la variable generosQueryable contiene los elementos de la tabla actores y se utilizo
+             * AsQueryable() ya que el metodo InsertarParametrosEnCabecera() recibe este tipo de dato como 
+             * parametro.
+             * Metodo InsertarParametrosEnCabecera: su logica se encuentra en la clase HttpContextExtensions la 
+             * cual se utilizoo para hacen un metodo de   extension de HttpContext
+             */
+            var actoresQueryable = _db.Actores.AsQueryable();
+            await HttpContext.InsertarParametrosEnCabecera(actoresQueryable);
+
+            /*
+             * La variable generos contiene un listado en el  cual se utiliza el metodo Paginar() el cual su logica
+             * se encuentra en la clase IQueryableExtensions la cual recibe un objeto de tipo PaginacionDTO con el fin 
+             * de paginar el resultado de la consulta.
+             */
+            var actores = await actoresQueryable.OrderBy(x => x.Nombre).Paginar(paginacionDTO).ToListAsync();
+
+            /*
+             * El retorno es una lista de tipo GeneroDTO por lo cual se utiliza mapper para mapear la variable generos la
+             * cual es de tipo Genero a GeneroDTO que es el tipo de dato que requiere como retorno la funcion.
+             */
+            return mapper.Map<List<ActorDTO>>(actores);
+        }
+
+        [HttpGet("{id:int}")]
+
+        public async Task<ActionResult<ActorDTO>> Get([FromRoute] int id)
+        {
+            var actor = await _db.Actores.FirstOrDefaultAsync(g => g.Id == id);
+            if (actor == null)
+            {
+                return NotFound();
+            }
+            return mapper.Map<ActorDTO>(actor);
+
+        }
+
 
         [HttpPost]
         public async Task<ActionResult> Post([FromForm] ActorCreacionDTO actorCreacionDTO)
@@ -45,5 +87,53 @@ namespace PeliculasApi.Controllers
             }
             return new JsonResult(new { succes = false, message = "El Actor ya se encuentra en la base de datos.", code = 500 });
         }
+
+        [HttpPut("{id:int}")]
+        public async Task<ActionResult> Put([FromForm] ActorCreacionDTO actorCreacionDTO, [FromRoute] int id)
+            {
+            var actor = await _db.Actores.FirstOrDefaultAsync(x => x.Id == id);
+
+            if (actor == null)
+            {
+                return NotFound();
+            }
+
+            actor = mapper.Map(actorCreacionDTO, actor);
+
+            if(actorCreacionDTO.Foto != null)
+            {
+                actor.Foto = await almacenadorArchivos.EditarArchivo(contenedor, actorCreacionDTO.Foto, actor.Foto);
+            }
+            _db.Update(actor);
+            await _db.SaveChangesAsync();
+            return new JsonResult(new { succes = true, message = "Registro actualizado.", code = 200 });
+        }
+
+        [HttpDelete("{id:int}")]
+
+        public async Task<ActionResult> Delete([FromRoute] int id)
+        {
+            if (id == 0)
+            {
+                return new JsonResult(new { succes = false, message = "Error", code = 404 });
+            }
+
+            var actor = await _db.Actores.FirstOrDefaultAsync(g => g.Id == id);
+
+            if (actor != null)
+            {
+                _db.Actores.Remove(actor);
+                await _db.SaveChangesAsync();
+                await almacenadorArchivos.BorrarArchivo(actor.Foto, contenedor);
+                return new JsonResult(new { succes = false, message = "Registro eliminado", code = 200 });
+            }
+            else
+            {
+                return new JsonResult(new { succes = false, message = "El Registro que desea eliminar no existe en la base de datos.", code = 404 });
+            }
+
+
+        }
+
     }
 }

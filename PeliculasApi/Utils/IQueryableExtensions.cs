@@ -7,8 +7,8 @@ namespace PeliculasApi.Utils
     public static class IQueryableExtensions
     {
         /*
-       * metodo de extension para IQueryable  primer parametro indica donde de va a aplicar y el segundo el IQueryable
-       * que representa la tabla a la que se hara la consulta en este caso contar cuantos registros tiene
+       * metodo de extension para IQueryable  primer parametro indica donde de va a aplicar y el segundo el paginacionDTO
+       * 
        */
         public static IQueryable<T> Paginar<T>(this IQueryable<T> queryable,PaginacionDTO paginacionDTO)
         {
