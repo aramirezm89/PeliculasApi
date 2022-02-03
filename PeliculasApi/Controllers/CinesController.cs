@@ -69,8 +69,8 @@ namespace PeliculasApi.Controllers
         [HttpPost]
         public async Task<ActionResult> Post([FromBody] CineCreacionDTO cineCreacionDTO)
         {
-            var validarRepetido = await _db.Cines.FirstOrDefaultAsync(c => c.Nombre == cineCreacionDTO.Nombre);
-            if(validarRepetido == null)
+            var validarNombreRepetido = await _db.Cines.FirstOrDefaultAsync(c => c.Nombre == cineCreacionDTO.Nombre);
+            if(validarNombreRepetido == null)
             {
                 var cine = mapper.Map<Cine>(cineCreacionDTO);
                 _db.Add(cine);
@@ -81,6 +81,22 @@ namespace PeliculasApi.Controllers
 
             return new JsonResult(new { succes = false, message = "El  genero ya se encuentra en la base de datos.", code = 500 });
 
+        }
+
+        [HttpPut("{id:int}")]
+        public async Task<ActionResult> Put([FromRoute]int id, [FromBody] CineCreacionDTO cineDTO)
+        {
+            var cineBd = await _db.Cines.FirstOrDefaultAsync(c => c.Id == id);
+
+            if(cineBd == null)
+            {
+                return NotFound();
+            }
+
+            var cine =   mapper.Map(cineDTO,cineBd);
+            _db.Update(cine);
+            await _db.SaveChangesAsync();
+            return new JsonResult(new { succes = true, message = "Registro actualizado.", code = 200 });
         }
 
 
@@ -99,7 +115,7 @@ namespace PeliculasApi.Controllers
             {
                _db.Remove(cine);
                 await _db.SaveChangesAsync();
-                return new JsonResult(new { succes = false, message = "Registro eliminado", code = 200 });
+                return new JsonResult(new { succes = true, message = "Registro eliminado", code = 200 });
             }
             else
             {

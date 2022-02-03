@@ -1,4 +1,5 @@
 ﻿using NetTopologySuite.Geometries;
+using PeliculasApi.Entidades.Validaciones;
 using System.ComponentModel.DataAnnotations;
 
 namespace PeliculasApi.Entidades.DTOs
@@ -7,6 +8,7 @@ namespace PeliculasApi.Entidades.DTOs
     {
         [Required]
         [StringLength(maximumLength: 50)]
+        [PrimeraLetraMayuscula]
         public string Nombre { get; set; }
         [Range(-90,90)]
         public double Latitud { get; set; }
