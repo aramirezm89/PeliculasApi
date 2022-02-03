@@ -1,3 +1,4 @@
+using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -6,6 +7,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using NetTopologySuite;
+using NetTopologySuite.Geometries;
 using PeliculasApi.APiBehavior;
 using PeliculasApi.Filtros;
 using PeliculasApi.Utils;
@@ -24,8 +27,18 @@ namespace PeliculasApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddAutoMapper(typeof(Startup));//implementacion de AUTOMAPPER
+            //implementacion de AUTOMAPPER
+            services.AddAutoMapper(typeof(Startup));
 
+            //agregar GeometryFactory a AUTOMAPPER
+            services.AddSingleton(provider =>
+          
+                new MapperConfiguration(config =>
+                {
+                    var geometryFactory = provider.GetRequiredService<GeometryFactory>();
+                    config.AddProfile(new AutoMapperProfiles(geometryFactory));
+                }).CreateMapper()
+            );
 
             /*
              * implementacion del servicio para la ejecucion de guardar borrar o editar archivos en AZURE
@@ -40,9 +53,14 @@ namespace PeliculasApi
             /*
              * implementacion de la Class ApplicationDbContext y su conexion a bse de datos por medio
              * de la defaultConnection que se encuentra declarada en appsettings.json
+             * 
+             * UseNetTopologySuite libreria de entityFrameWorkCore que sirve para datos espaciales (longitud,latitud)
              */
             services.AddDbContext<ApplicationDbContext>(options => 
-            options.UseSqlServer(Configuration.GetConnectionString("LocalHostConnection")));
+            options.UseSqlServer(Configuration.GetConnectionString("LocalHostConnection"),
+            sqlServer => sqlServer.UseNetTopologySuite()));
+
+            services.AddSingleton<GeometryFactory>(NtsGeometryServices.Instance.CreateGeometryFactory(srid: 4326));
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
 

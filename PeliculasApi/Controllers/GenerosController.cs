@@ -125,7 +125,7 @@ namespace PeliculasApi.Controllers
             }
             else
             {
-                return new JsonResult(new { succes = false, message = "El Registro que desea eliminar no existe en la base de datos.", code = 404 });
+                return new JsonResult(new { succes = false, message = "El registro que desea eliminar no existe en la base de datos.", code = 404 });
             }
 
            

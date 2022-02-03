@@ -30,7 +30,7 @@ namespace PeliculasApi.Controllers
         public async Task<ActionResult<List<ActorDTO>>> Get([FromQuery] PaginacionDTO paginacionDTO)
         {
             /*
-             * la variable generosQueryable contiene los elementos de la tabla actores y se utilizo
+             * la variable actoresQueryable contiene los elementos de la tabla actores y se utilizo
              * AsQueryable() ya que el metodo InsertarParametrosEnCabecera() recibe este tipo de dato como 
              * parametro.
              * Metodo InsertarParametrosEnCabecera: su logica se encuentra en la clase HttpContextExtensions la 
