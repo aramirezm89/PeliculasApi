@@ -1,4 +1,5 @@
 ﻿using PeliculasApi.Entidades.Validaciones;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 
@@ -13,6 +14,7 @@ namespace PeliculasApi.Entidades
         [PrimeraLetraMayuscula]
         [Display(Name ="NombreGenero")]
         public string Nombre { get; set; }
+        public List<PeliculasGenero> PeliculasGenero { get; set; }
 
 
     }

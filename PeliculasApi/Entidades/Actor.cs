@@ -1,5 +1,6 @@
 ﻿using PeliculasApi.Entidades.Validaciones;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace PeliculasApi.Entidades
@@ -14,6 +15,7 @@ namespace PeliculasApi.Entidades
         public string Biografia { get; set; }
         public DateTime FechaNacimiento { get; set; }
         public string Foto { get; set; }
+        public List<PeliculasActores> PeliculasActores { get; set; }
 
 
     }
