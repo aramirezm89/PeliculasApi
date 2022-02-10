@@ -83,6 +83,7 @@ namespace PeliculasApi.Controllers
 
                 _db.Actores.Add(actor);
                 await _db.SaveChangesAsync();
+          
                 return new JsonResult(new { succes = true, message = "Registro guardado.", code = 200 });
             }
             return new JsonResult(new { succes = false, message = "El Actor ya se encuentra en la base de datos.", code = 500 });

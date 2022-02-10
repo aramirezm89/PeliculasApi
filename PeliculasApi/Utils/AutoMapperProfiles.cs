@@ -35,6 +35,8 @@ namespace PeliculasApi.Utils
                 .ForMember(x => x.PeliculasGenero, opciones => opciones.MapFrom(MapearPeliculasGeneros))
                 .ForMember(x => x.PeliculasCine, opciones => opciones.MapFrom(MapearPeliculasCine))
                 .ForMember(x => x.PeliculasActores, opciones => opciones.MapFrom(MapearPeliculasActores));
+
+            CreateMap<Pelicula, PeliculaDTO>().ReverseMap();
         }
 
         private List<PeliculasActores> MapearPeliculasActores(PeliculaCreacionDTO peliculaCreacionDTO, Pelicula pelicula )

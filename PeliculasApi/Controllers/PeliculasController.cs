@@ -26,6 +26,35 @@ namespace PeliculasApi.Controllers
             this.almacenadorArchivos = almacenadorArchivos;
         }
 
+
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<PeliculaDTO>>Get([FromRoute]int id)
+        {
+            var pelicula = await _db.Peliculas.FirstOrDefaultAsync(p => p.Id == id);  
+            if (pelicula == null)
+            {
+                return NotFound();
+            }
+           var generos =  _db.PeliculasGeneros.Where( p => p.PeliculaId == pelicula.Id);
+            return  mapper.Map<PeliculaDTO>(pelicula);
+        }
+
+        [HttpGet("generos/{id:int}")]
+        public async Task<ActionResult<PeliculasPostGetDTO>>GetGeneros([FromRoute] int id)
+        {
+           
+            var generos = await _db.PeliculasGeneros.Where(p => p.PeliculaId == id).ToListAsync();
+            List<GeneroDTO> listaGenero = new List<GeneroDTO>();  
+            foreach (var item in generos)
+            {
+                var nombreGenero = await  _db.Generos.FirstOrDefaultAsync(g => g.Id == item.GeneroId);
+                listaGenero.Add(mapper.Map<GeneroDTO>(nombreGenero));  
+            }
+           
+
+            return new PeliculasPostGetDTO() { Generos = listaGenero};
+        }
+
         [HttpPost]
         public async Task<ActionResult> Post([FromForm] PeliculaCreacionDTO peliculaCreacionDTO)
         {
@@ -43,7 +72,8 @@ namespace PeliculasApi.Controllers
 
                 _db.Add(pelicula); 
                 await _db.SaveChangesAsync();
-                return new JsonResult(new { succes = true, message = "Registro guardado.", code = 200 });
+                var peliculaCreada = await _db.Peliculas.FirstOrDefaultAsync(p => p.Titulo == peliculaCreacionDTO.Titulo);
+                return new JsonResult(new { succes = true, message = "Registro guardado.", code = 200,idPelicula = peliculaCreada.Id });
             }
             return new JsonResult(new { succes = false, message = "EL Titulo de la pelicula ya se encuentra en la base de datos.", code = 500 });
 

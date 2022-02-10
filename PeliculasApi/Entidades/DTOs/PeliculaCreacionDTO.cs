@@ -22,7 +22,7 @@ namespace PeliculasApi.Entidades.DTOs
         [ModelBinder(BinderType =typeof(TypeBinder<List<int>>))]
         public List<int> GenerosIds { get; set; }
         [ModelBinder(BinderType = typeof(TypeBinder<List<int>>))]
-        public List<int> CinesIds { get;}
+        public List<int> CinesIds { get; set; }
         [ModelBinder(BinderType = typeof(TypeBinder<List<ActorPeliculaCreacionDTO>>))]
         public List<ActorPeliculaCreacionDTO> Actores { get; set;}
     }
