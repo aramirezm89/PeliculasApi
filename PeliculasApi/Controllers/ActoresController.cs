@@ -65,7 +65,21 @@ namespace PeliculasApi.Controllers
             return mapper.Map<ActorDTO>(actor);
 
         }
+        [HttpGet("buscarPorNombre/{nombre}")]
+        public async Task<ActionResult<List<PeliculaActorDTO>>>BuscarPorNombre([FromRoute]string nombre = "")
+        {
+            if (string.IsNullOrEmpty(nombre))
+            {
+                return new List<PeliculaActorDTO>();
+            }
 
+            return await _db.Actores
+                .Where(a => a.Nombre.Contains(nombre)).OrderBy(a => a.Nombre)
+                .Select(a => new PeliculaActorDTO { Id = a.Id, Nombre = a.Nombre, Foto = a.Foto })
+                .Take(5)
+                .ToListAsync();
+        }
+     
 
         [HttpPost]
         public async Task<ActionResult> Post([FromForm] ActorCreacionDTO actorCreacionDTO)

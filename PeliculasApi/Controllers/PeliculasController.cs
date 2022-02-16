@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using PeliculasApi.Entidades;
 using PeliculasApi.Entidades.DTOs;
 using PeliculasApi.Utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -40,19 +41,43 @@ namespace PeliculasApi.Controllers
         }
 
         [HttpGet("generos/{id:int}")]
-        public async Task<ActionResult<PeliculasPostGetDTO>>GetGeneros([FromRoute] int id)
+        public async Task<ActionResult<List<GeneroDTO>>>GetGeneros([FromRoute] int id)
         {
            
             var generos = await _db.PeliculasGeneros.Where(p => p.PeliculaId == id).ToListAsync();
             List<GeneroDTO> listaGenero = new List<GeneroDTO>();  
             foreach (var item in generos)
             {
-                var nombreGenero = await  _db.Generos.FirstOrDefaultAsync(g => g.Id == item.GeneroId);
+                var nombreGenero = await _db.Generos.FirstOrDefaultAsync(g => g.Id == item.GeneroId);
                 listaGenero.Add(mapper.Map<GeneroDTO>(nombreGenero));  
             }
            
 
-            return new PeliculasPostGetDTO() { Generos = listaGenero};
+            return listaGenero;
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<LandingPageDTO>> Get()
+        {
+            var top = 6;
+            var hoy = DateTime.Today;
+
+            var proximosEstrenos = await _db.Peliculas.Where(p => p.FechaLanzamiento > hoy)
+                .OrderBy(x => x.FechaLanzamiento)
+                .Take(top)
+                .ToListAsync();
+
+            var enCines = await _db.Peliculas.
+                          Where(p => p.EnCines)
+                          .OrderBy(x => x.FechaLanzamiento)
+                          .Take(6)
+                          .ToListAsync();
+            var resultado = new LandingPageDTO();
+
+           resultado.ProximosEstrenos = mapper.Map<List<PeliculaDTO>>(proximosEstrenos);   
+           resultado.EnCines = mapper.Map<List<PeliculaDTO>>(enCines);   
+
+            return resultado;   
         }
 
         [HttpPost]
