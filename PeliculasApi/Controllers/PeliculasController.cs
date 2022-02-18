@@ -29,17 +29,20 @@ namespace PeliculasApi.Controllers
 
 
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<PeliculaDTO>>Get([FromRoute]int id)
+        public async Task<ActionResult<PeliculaDTO>> Get( int id)
         {
-            var pelicula = await _db.Peliculas.FirstOrDefaultAsync(p => p.Id == id);  
-            if (pelicula == null)
-            {
-                return NotFound();
-            }
-           var generos =  _db.PeliculasGeneros.Where( p => p.PeliculaId == pelicula.Id);
-            return  mapper.Map<PeliculaDTO>(pelicula);
-        }
+            var pelicula = await _db.Peliculas
+                .Include(x => x.PeliculasGenero).ThenInclude(x => x.Genero)
+                .Include(x => x.PeliculasActores).ThenInclude(x => x.Actor)
+                .Include(x => x.PeliculasCine).ThenInclude(x => x.Cine)
+                .FirstOrDefaultAsync(x => x.Id == id);
 
+            if (pelicula == null) { return NotFound(); }
+
+            var dto = mapper.Map<PeliculaDTO>(pelicula);
+            dto.Actores =  dto.Actores.OrderBy(x => x.Orden).ToList();
+            return dto;
+        }
         [HttpGet("generos/{id:int}")]
         public async Task<ActionResult<List<GeneroDTO>>>GetGeneros([FromRoute] int id)
         {
@@ -57,7 +60,7 @@ namespace PeliculasApi.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<LandingPageDTO>> Get()
+        public async Task<ActionResult<LandingPageDTO>> GetLanding()
         {
             var top = 6;
             var hoy = DateTime.Today;
@@ -119,7 +122,62 @@ namespace PeliculasApi.Controllers
             return new PeliculasPostGetDTO() { Generos = generosDTO , Cines = cinesDTO};
         }
 
+        [HttpGet("PutGet/{id:int}")]
+        public async Task<ActionResult<PeliculasPutGetDTO>> PutGet(int id)
+        {
+            var peliculaActionResult = await Get(id);
+            if (peliculaActionResult.Result is NotFoundResult) { return NotFound(); }
 
+            var pelicula = peliculaActionResult.Value;
+
+            var generosSeleccionadosIds = pelicula.Generos.Select(x => x.Id).ToList();
+            var generosNoSeleccionados = await _db.Generos
+                .Where(x => !generosSeleccionadosIds.Contains(x.Id))
+                .ToListAsync();
+
+            var cinesSeleccionadosIds = pelicula.Cines.Select(x => x.Id).ToList();
+            var cinesNoSeleccionados = await _db.Cines
+                .Where(x => !cinesSeleccionadosIds.Contains(x.Id))
+                .ToListAsync();
+
+            var generosNoSeleccionadosDTO = mapper.Map<List<GeneroDTO>>(generosNoSeleccionados);
+            var cinesNoSeleccionadosDTO = mapper.Map<List<CineDTO>>(cinesNoSeleccionados);
+
+            var respuesta = new PeliculasPutGetDTO();
+            respuesta.Pelicula = pelicula;
+            respuesta.GenerosSeleccionados = pelicula.Generos;
+            respuesta.GenerosNoSeleccionados = generosNoSeleccionadosDTO;
+            respuesta.CinesSeleccionados = pelicula.Cines;
+            respuesta.CinesNoSeleccionados = cinesNoSeleccionadosDTO;
+            respuesta.Actores = pelicula.Actores;
+            return respuesta;
+        }
+
+        [HttpPut("{id:int}")]
+        public async Task<ActionResult> Put(int id, [FromForm] PeliculaCreacionDTO peliculaCreacionDTO)
+        {
+            var pelicula = await _db.Peliculas
+                .Include(x => x.PeliculasActores)
+                .Include(x => x.PeliculasGenero)
+                .Include(x => x.PeliculasCine)
+                .FirstOrDefaultAsync(x => x.Id == id);  
+
+            if(pelicula == null)
+            {
+                return NotFound();
+            }
+            pelicula = mapper.Map(peliculaCreacionDTO, pelicula);
+
+            if(peliculaCreacionDTO.Poster != null)
+            {
+                pelicula.Poster = await almacenadorArchivos.EditarArchivo(contenedor, peliculaCreacionDTO.Poster, pelicula.Poster);
+            }
+
+            EscribirOrdenActores(pelicula);
+
+            await _db.SaveChangesAsync();
+            return new JsonResult(new { succes = true, message = "Registro actualizado.", code = 200 });
+        }
         private void EscribirOrdenActores(Pelicula pelicula)
         {
             if(pelicula.PeliculasActores != null)
@@ -127,6 +185,7 @@ namespace PeliculasApi.Controllers
                 pelicula.PeliculasActores.OrderBy(p => p.Orden);
             }
         }
+      
 
     }
 }

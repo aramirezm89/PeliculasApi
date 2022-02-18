@@ -15,9 +15,9 @@ namespace PeliculasApi.Entidades.DTOs
         public bool EnCines { get; set; }
         public DateTime FechaLanzamiento { get; set; }
         public string Poster { get; set; }
-        public List<PeliculasActores> PeliculasActores { get; set; }
-        public List<PeliculasGenero> PeliculasGenero { get; set; }
-        public List<PeliculasCines> PeliculasCine { get; set; }
+        public List<GeneroDTO> Generos { get; set; }
+        public List<PeliculaActorDTO> Actores { get; set; }
+        public List<CineDTO> Cines { get; set; }
 
     }
 }
