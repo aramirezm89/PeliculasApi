@@ -83,6 +83,39 @@ namespace PeliculasApi.Controllers
             return resultado;   
         }
 
+        [HttpGet("filtrar")]
+        public async Task<ActionResult<List<PeliculaDTO>>> Filtrar([FromQuery] PeliculasFiltrarDTO peliculasFiltrarDTO)
+        {
+            var peliculasQueryable = _db.Peliculas.AsQueryable();
+
+            if (!string.IsNullOrEmpty(peliculasFiltrarDTO.Titulo))
+            {
+                peliculasQueryable = peliculasQueryable.Where(p => p.Titulo.Contains(peliculasFiltrarDTO.Titulo));
+            }
+
+            if (peliculasFiltrarDTO.Encines)
+            {
+                peliculasQueryable = peliculasQueryable.Where(p => p.EnCines);
+            }
+
+            if (peliculasFiltrarDTO.ProximosEstrenos)
+            {
+                peliculasQueryable = peliculasQueryable.Where(p  => p.FechaLanzamiento > DateTime.Today);
+            }
+
+            if(peliculasFiltrarDTO.GeneroId != 0)
+            {
+                peliculasQueryable = peliculasQueryable.Where(p => p.PeliculasGenero
+                .Select(g => g.GeneroId).Contains(peliculasFiltrarDTO.GeneroId));
+            }
+
+            await HttpContext.InsertarParametrosEnCabecera(peliculasQueryable);
+
+            var peliculas = await peliculasQueryable.Paginar(peliculasFiltrarDTO.PaginacionDTO).ToListAsync();
+
+            return mapper.Map<List<PeliculaDTO>>(peliculas);    
+        }
+
         [HttpPost]
         public async Task<ActionResult> Post([FromForm] PeliculaCreacionDTO peliculaCreacionDTO)
         {
@@ -154,7 +187,7 @@ namespace PeliculasApi.Controllers
         }
 
         [HttpPut("{id:int}")]
-        public async Task<ActionResult> Put(int id, [FromForm] PeliculaCreacionDTO peliculaCreacionDTO)
+        public async Task<ActionResult> Put([FromRoute]int id, [FromForm] PeliculaCreacionDTO peliculaCreacionDTO)
         {
             var pelicula = await _db.Peliculas
                 .Include(x => x.PeliculasActores)
@@ -165,7 +198,7 @@ namespace PeliculasApi.Controllers
             if(pelicula == null)
             {
                 return NotFound();
-            }
+            }  
             pelicula = mapper.Map(peliculaCreacionDTO, pelicula);
 
             if(peliculaCreacionDTO.Poster != null)
@@ -186,6 +219,22 @@ namespace PeliculasApi.Controllers
             }
         }
       
+        [HttpDelete("{id:int}")]
+
+        public async Task<ActionResult> Delete(int id)
+        {
+            var pelicula = await _db.Peliculas.FirstOrDefaultAsync(p => p.Id == id);
+
+            if(pelicula == null)
+            {
+                return NotFound();
+            }
+
+            _db.Remove(pelicula);
+            await _db.SaveChangesAsync();
+            await almacenadorArchivos.BorrarArchivo(pelicula.Poster,contenedor);
+            return new JsonResult(new { succes = false, message = "Registro eliminado", code = 200 });
+        }
 
     }
 }

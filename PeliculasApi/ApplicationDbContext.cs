@@ -1,9 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using PeliculasApi.Entidades;
 
 namespace PeliculasApi
 {
-    public class ApplicationDbContext : DbContext
+    /*instalar Microsoft.AspNetCore.Identity.EntityFrameworkCore para poder usar IdentityDbContext.
+     */
+    public class ApplicationDbContext : IdentityDbContext
     {
         public ApplicationDbContext(DbContextOptions options) : base(options)
         {

@@ -12,7 +12,7 @@ namespace PeliculasApi.Utils
         private string connectionString;
         public AlmacenadorAzureStorage(IConfiguration configuration)
         {
-            connectionString = configuration.GetConnectionString("AzureStorage");
+            connectionString = configuration.GetConnectionString("AzureStorage"); //esta cadena de conexion se encuentra en appsettings.json;
         }
 
         public async Task<string> GuardarArchivo(string contenedor, IFormFile archivo)

@@ -73,6 +73,14 @@ namespace PeliculasApi.Controllers
           
         }
 
+        [HttpGet("todos")]
+        public async Task <ActionResult<List<GeneroDTO>>> TodosLosGeneros()
+        {
+            var generos = await _db.Generos.OrderBy(g => g.Nombre).ToListAsync();
+
+            return mapper.Map<List<GeneroDTO>>(generos);
+        }
+
         [HttpPost]
         public async Task<ActionResult> Post([FromBody] GeneroCreacionDTO generoCreacionDTO)
         {

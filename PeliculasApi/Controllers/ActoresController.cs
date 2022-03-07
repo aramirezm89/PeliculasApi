@@ -40,14 +40,14 @@ namespace PeliculasApi.Controllers
             await HttpContext.InsertarParametrosEnCabecera(actoresQueryable);
 
             /*
-             * La variable generos contiene un listado en el  cual se utiliza el metodo Paginar() el cual su logica
+             * La variable actores contiene un listado en el  cual se utiliza el metodo Paginar() el cual su logica
              * se encuentra en la clase IQueryableExtensions la cual recibe un objeto de tipo PaginacionDTO con el fin 
              * de paginar el resultado de la consulta.
              */
             var actores = await actoresQueryable.OrderBy(x => x.Nombre).Paginar(paginacionDTO).ToListAsync();
 
             /*
-             * El retorno es una lista de tipo GeneroDTO por lo cual se utiliza mapper para mapear la variable generos la
+             * El retorno es una lista de tipo actorDTO por lo cual se utiliza mapper para mapear la variable generos la
              * cual es de tipo Genero a GeneroDTO que es el tipo de dato que requiere como retorno la funcion.
              */
             return mapper.Map<List<ActorDTO>>(actores);
