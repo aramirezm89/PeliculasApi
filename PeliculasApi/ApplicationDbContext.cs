@@ -29,6 +29,9 @@ namespace PeliculasApi
         public DbSet<PeliculasActores> PeliculasActores { get; set; }
         public DbSet<PeliculasCines> PeliculasCines { get; set; }
         public DbSet<PeliculasGenero> PeliculasGeneros { get; set; }
+        public DbSet<Rating> Ratings { get; set; }
+
+        
 
     }
 }

@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -8,13 +10,14 @@ using PeliculasApi.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace PeliculasApi.Controllers
 {
     [Route("api/generos")]
     [ApiController]
-    //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,Policy = "EsAdmin")]
     public class GenerosController : ControllerBase
     {
 
@@ -74,6 +77,7 @@ namespace PeliculasApi.Controllers
         }
 
         [HttpGet("todos")]
+        [AllowAnonymous]
         public async Task <ActionResult<List<GeneroDTO>>> TodosLosGeneros()
         {
             var generos = await _db.Generos.OrderBy(g => g.Nombre).ToListAsync();

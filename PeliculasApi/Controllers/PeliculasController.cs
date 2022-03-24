@@ -1,4 +1,7 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PeliculasApi.Entidades;
@@ -13,22 +16,26 @@ namespace PeliculasApi.Controllers
 {
     [ApiController]
     [Route("api/peliculas")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,Policy = "EsAdmin")]
     public class PeliculasController : ControllerBase
     {
         private readonly IMapper mapper;
         private readonly ApplicationDbContext _db;
         private readonly IAlmacenadorArchivos almacenadorArchivos;
+        private readonly UserManager<IdentityUser> userManager;
         private readonly string contenedor = "peliculas";
 
-        public PeliculasController(IMapper mapper, ApplicationDbContext db, IAlmacenadorArchivos almacenadorArchivos)
+        public PeliculasController(IMapper mapper, ApplicationDbContext db, IAlmacenadorArchivos almacenadorArchivos, UserManager<IdentityUser> userManager)
         {
             this.mapper = mapper;
             this._db = db;
             this.almacenadorArchivos = almacenadorArchivos;
+            this.userManager = userManager;
         }
 
 
         [HttpGet("{id:int}")]
+        [AllowAnonymous]
         public async Task<ActionResult<PeliculaDTO>> Get( int id)
         {
             var pelicula = await _db.Peliculas
@@ -39,7 +46,42 @@ namespace PeliculasApi.Controllers
 
             if (pelicula == null) { return NotFound(); }
 
+            var promedioVoto = 0.0;
+            var votoUsuario = 0;
+
+
             var dto = mapper.Map<PeliculaDTO>(pelicula);
+            dto.PromedioVoto = promedioVoto;
+            dto.VotoUsuario = votoUsuario;
+
+
+            /*pregunto si en la tabla de Raitings existe algun dato con el id de la pelicula, si existe busco todos los registros de la tabla raiting
+              de acuerdo a la peliculaId y calculo el promedio del campo Puntuacion.
+            */
+
+            if(await _db.Ratings.AnyAsync(x => x.PeliculaId == id))
+            {
+                dto.PromedioVoto = await _db.Ratings.Where(x => x.PeliculaId == id).AverageAsync(x => x.Puntuacion);
+
+                //pregunto si el usuario esta autenticado
+                if (HttpContext.User.Identity.IsAuthenticated)
+                {
+                    var email = HttpContext.User.Claims.FirstOrDefault(x => x.Type == "email").Value;
+                    var usuario  = await userManager.FindByEmailAsync(email);
+                    var usuarioId = usuario.Id;
+
+                    //ratingDB: esta consulta permite saber si el usuario ha votado por la pelicula
+                    var ratingDB = await _db.Ratings.FirstOrDefaultAsync(x => x.PeliculaId == id && x.UsuarioId == usuarioId);
+
+                    //si el suario ya voto por la pelicula anteriormente (ratingDB es distinto de null por lo tanto a la variable votoUsuario se le da el valor que existe en la BD)
+                    if (ratingDB != null)
+                    {
+                        dto.VotoUsuario = ratingDB.Puntuacion;
+                    }
+                   
+                }
+            }
+
             dto.Actores =  dto.Actores.OrderBy(x => x.Orden).ToList();
             return dto;
         }
@@ -60,6 +102,7 @@ namespace PeliculasApi.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<LandingPageDTO>> GetLanding()
         {
             var top = 6;
@@ -84,6 +127,7 @@ namespace PeliculasApi.Controllers
         }
 
         [HttpGet("filtrar")]
+        [AllowAnonymous]
         public async Task<ActionResult<List<PeliculaDTO>>> Filtrar([FromQuery] PeliculasFiltrarDTO peliculasFiltrarDTO)
         {
             var peliculasQueryable = _db.Peliculas.AsQueryable();

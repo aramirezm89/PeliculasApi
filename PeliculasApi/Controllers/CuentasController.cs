@@ -45,12 +45,14 @@ namespace PeliculasApi.Controllers
 
             if (resultado.Succeeded)
             {
+                var tokenCreado = await ConstruirToken(credenciales);
                 //si el usuario es creado correctamente se crea el token mediante el metodo ConstruirToken
-                return await ConstruirToken(credenciales);
+                return new JsonResult(new { success = true, message = "Usuario creado con exito" , token= tokenCreado, code = 200});
+                
             }
             else
             {
-                return BadRequest(resultado.Errors);
+                return new JsonResult(new { success = false, message = "Error",  code = 400 });
             }
 
         }
@@ -63,12 +65,14 @@ namespace PeliculasApi.Controllers
 
             if (resultado.Succeeded)
             {
+                var tokenCreado = await ConstruirToken(credenciales);
                 //si el resultado es correecto se crea un token.
-                return await ConstruirToken(credenciales);
+                return new JsonResult(new { success = true, message = $"Bienvenido", token = tokenCreado, code = 200 });
+             
             }
             else
             {
-                return BadRequest("Login incorrecto");
+                return new JsonResult(new { success = false, message = "Usuario o Contraseña no valida.", code = 400 });
             }
         }
 
@@ -76,8 +80,7 @@ namespace PeliculasApi.Controllers
         {
             var claims = new List<Claim>()
             {
-              new Claim("email",credenciales.Email),
-              
+              new Claim("email",credenciales.Email),              
             };
 
             //usuario: contiene el usuario buscado en la base de dato segun el email que tenga.

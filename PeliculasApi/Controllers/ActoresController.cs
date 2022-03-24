@@ -7,11 +7,14 @@ using PeliculasApi.Entidades;
 using Microsoft.EntityFrameworkCore;
 using PeliculasApi.Utils;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace PeliculasApi.Controllers
 {
     [Route("api/actores")]
     [ApiController]
+    [Authorize(AuthenticationSchemes =  JwtBearerDefaults.AuthenticationScheme,Policy ="EsAdmin")] // el policy esta creado en statUp.cs
     public class ActoresController : ControllerBase
     {
         private readonly ApplicationDbContext _db;

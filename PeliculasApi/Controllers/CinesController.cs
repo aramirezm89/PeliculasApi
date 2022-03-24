@@ -7,11 +7,14 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using PeliculasApi.Utils;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace PeliculasApi.Controllers
 {
     [ApiController]
     [Route("api/cines")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,Policy = "EsAdmin")]
     public class CinesController : ControllerBase   
     {
         private readonly ApplicationDbContext _db;

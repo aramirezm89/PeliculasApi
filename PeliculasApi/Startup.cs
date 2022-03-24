@@ -15,6 +15,7 @@ using PeliculasApi.APiBehavior;
 using PeliculasApi.Filtros;
 using PeliculasApi.Utils;
 using System;
+using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 
 namespace PeliculasApi
@@ -23,7 +24,9 @@ namespace PeliculasApi
     {
         public Startup(IConfiguration configuration)
         {
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
             Configuration = configuration;
+            
         }
 
         public IConfiguration Configuration { get; }
@@ -69,7 +72,7 @@ namespace PeliculasApi
 
             //configuracion para utilizar  Microsoft.AspNetCore.Identity.EntityFrameworkCore 
 
-            services.AddIdentity<IdentityUser, IdentityRole>()
+            services.AddIdentity<IdentityUser, IdentityRole>(options => options.Password.RequireNonAlphanumeric = false)
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
@@ -87,6 +90,12 @@ namespace PeliculasApi
                     ClockSkew = TimeSpan.Zero
 
                 }) ;
+
+            //implementacion para utilizar claims como proteccion de determinados endpoints.
+            services.AddAuthorization(opciones =>
+            {
+                opciones.AddPolicy("EsAdmin", policy => policy.RequireClaim("role", "admin"));
+            });
 
 
 
