@@ -1,11 +1,18 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using PeliculasApi.Entidades.DTOs;
+using PeliculasApi.Utils;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,16 +26,53 @@ namespace PeliculasApi.Controllers
         private readonly UserManager<IdentityUser> userManager;
         private readonly IConfiguration configuration;
         private readonly SignInManager<IdentityUser> signInManager;
+        private readonly ApplicationDbContext _db;
+        private readonly IMapper mapper;
 
         //se inyecta UserManager al contructor de la clase y se asigna como campo con el fin de poder crear un usuario.
         //se inyecta SigningManager al constructor de la clase y se asigna como campo con el fin de poder trabajar con el login.
-        public CuentasController(UserManager<IdentityUser> userManager, IConfiguration configuration,SignInManager<IdentityUser> signInManager)
+        public CuentasController(UserManager<IdentityUser> userManager, IConfiguration configuration,SignInManager<IdentityUser>
+            signInManager, ApplicationDbContext db, IMapper mapper)
         {
             this.userManager = userManager;
             this.configuration = configuration;
             this.signInManager = signInManager;
+            this._db = db;
+            this.mapper = mapper;
         }
 
+        [HttpGet]
+        public async Task<ActionResult<List<UsuarioDTO>>> ListadoUsuarios([FromQuery] PaginacionDTO paginacionDTO)
+        {
+            var queryable = _db.Users.AsQueryable();
+            await HttpContext.InsertarParametrosEnCabecera(queryable); // pasa la cantidad de registros que contiene la tabla Users.
+
+            var usuarios = await queryable.OrderBy(u => u.Email).Paginar(paginacionDTO).ToListAsync();
+
+            return mapper.Map<List<UsuarioDTO>>(usuarios);
+        }
+
+        [HttpPost("hacerAdmin")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,Policy ="EsAdmin")]
+        public async Task<ActionResult> HacerAdmin([FromBody]string usuarioID)
+        {
+            var usuario = await userManager.FindByIdAsync(usuarioID);
+
+            await userManager.AddClaimAsync(usuario, new Claim("role", "admin"));
+
+             return new JsonResult(new { success = true, message = "el usuario ahora tiene permisos de  administrador", code = 200 });
+        }
+
+        [HttpPost("removerAdmin")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "EsAdmin")]
+        public async Task<ActionResult> removerAdmin([FromBody]string usuarioID)
+        {
+            var usuario = await userManager.FindByIdAsync(usuarioID);
+
+            await userManager.RemoveClaimAsync(usuario, new Claim("role", "admin"));
+
+            return new JsonResult(new { success = true, message = "el usuario ahora tiene permisos de  administrador", code = 200 });
+        }
 
         [HttpPost("crear")]
         public async Task<ActionResult<RespuestaAutenticacion>> Crear([FromBody] CredencialesUsuario credenciales)
@@ -76,7 +120,7 @@ namespace PeliculasApi.Controllers
             }
         }
 
-            private async Task<RespuestaAutenticacion> ConstruirToken(CredencialesUsuario credenciales)
+        private async Task<RespuestaAutenticacion> ConstruirToken(CredencialesUsuario credenciales)
         {
             var claims = new List<Claim>()
             {
@@ -110,6 +154,9 @@ namespace PeliculasApi.Controllers
             };
 
         }
+
+
+       
 
 
     }
