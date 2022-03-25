@@ -15,9 +15,9 @@ namespace PeliculasApi
         //OnModelCreating() se implementa este metodo para poder crear una llave primaria compuesta entre las entidades que se requieran.
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-           
+
             modelBuilder.Entity<PeliculasActores>().HasKey(x => new { x.ActorId, x.PeliculaId });
-            modelBuilder.Entity<PeliculasGenero>().HasKey(x => new {x.PeliculaId, x.GeneroId});
+            modelBuilder.Entity<PeliculasGenero>().HasKey(x => new { x.PeliculaId, x.GeneroId });
             modelBuilder.Entity<PeliculasCines>().HasKey(x => new { x.PeliculaId, x.CineId });
             base.OnModelCreating(modelBuilder);
         }
@@ -31,7 +31,7 @@ namespace PeliculasApi
         public DbSet<PeliculasGenero> PeliculasGeneros { get; set; }
         public DbSet<Rating> Ratings { get; set; }
 
-        
+
 
     }
 }

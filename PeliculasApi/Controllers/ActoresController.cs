@@ -1,20 +1,20 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PeliculasApi.Entidades.DTOs;
-using System.Threading.Tasks;
-using System.Linq;
-using PeliculasApi.Entidades;
 using Microsoft.EntityFrameworkCore;
+using PeliculasApi.Entidades;
+using PeliculasApi.Entidades.DTOs;
 using PeliculasApi.Utils;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace PeliculasApi.Controllers
 {
     [Route("api/actores")]
     [ApiController]
-    [Authorize(AuthenticationSchemes =  JwtBearerDefaults.AuthenticationScheme,Policy ="EsAdmin")] // el policy esta creado en statUp.cs
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "EsAdmin")] // el policy esta creado en statUp.cs
     public class ActoresController : ControllerBase
     {
         private readonly ApplicationDbContext _db;
@@ -29,7 +29,7 @@ namespace PeliculasApi.Controllers
             this.almacenadorArchivos = almacenadorArchivos;
         }
 
-        [HttpGet]   
+        [HttpGet]
         public async Task<ActionResult<List<ActorDTO>>> Get([FromQuery] PaginacionDTO paginacionDTO)
         {
             /*
@@ -69,7 +69,7 @@ namespace PeliculasApi.Controllers
 
         }
         [HttpGet("buscarPorNombre/{nombre}")]
-        public async Task<ActionResult<List<PeliculaActorDTO>>>BuscarPorNombre([FromRoute]string nombre = "")
+        public async Task<ActionResult<List<PeliculaActorDTO>>> BuscarPorNombre([FromRoute] string nombre = "")
         {
             if (string.IsNullOrEmpty(nombre))
             {
@@ -82,25 +82,25 @@ namespace PeliculasApi.Controllers
                 .Take(5)
                 .ToListAsync();
         }
-     
+
 
         [HttpPost]
         public async Task<ActionResult> Post([FromForm] ActorCreacionDTO actorCreacionDTO)
         {
             var actor = mapper.Map<Actor>(actorCreacionDTO);
-            var validarActorRepetido = await  _db.Actores.FirstOrDefaultAsync(a => a.Nombre == actorCreacionDTO.Nombre);
-           
+            var validarActorRepetido = await _db.Actores.FirstOrDefaultAsync(a => a.Nombre == actorCreacionDTO.Nombre);
+
             if (validarActorRepetido == null)
             {
-               
+
                 if (actorCreacionDTO.Foto != null)
                 {
-                  actor.Foto =  await almacenadorArchivos.GuardarArchivo(contenedor, actorCreacionDTO.Foto);
+                    actor.Foto = await almacenadorArchivos.GuardarArchivo(contenedor, actorCreacionDTO.Foto);
                 }
 
                 _db.Actores.Add(actor);
                 await _db.SaveChangesAsync();
-          
+
                 return new JsonResult(new { succes = true, message = "Registro guardado.", code = 200 });
             }
             return new JsonResult(new { succes = false, message = "El Actor ya se encuentra en la base de datos.", code = 500 });
@@ -108,7 +108,7 @@ namespace PeliculasApi.Controllers
 
         [HttpPut("{id:int}")]
         public async Task<ActionResult> Put([FromForm] ActorCreacionDTO actorCreacionDTO, [FromRoute] int id)
-            {
+        {
             var actor = await _db.Actores.FirstOrDefaultAsync(x => x.Id == id);
 
             if (actor == null)
@@ -118,7 +118,7 @@ namespace PeliculasApi.Controllers
 
             actor = mapper.Map(actorCreacionDTO, actor);
 
-            if(actorCreacionDTO.Foto != null)
+            if (actorCreacionDTO.Foto != null)
             {
                 actor.Foto = await almacenadorArchivos.EditarArchivo(contenedor, actorCreacionDTO.Foto, actor.Foto);
             }

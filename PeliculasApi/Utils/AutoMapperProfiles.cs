@@ -28,7 +28,7 @@ namespace PeliculasApi.Utils
              * la latitud y longitud con el fin de completar los campos del mismo nombre que se encuentras en el DTO CineDTO
            */
             CreateMap<Cine, CineDTO>()
-            .ForMember(x => x.Latitud , dto => dto.MapFrom(campo => campo.Ubicacion.Y))
+            .ForMember(x => x.Latitud, dto => dto.MapFrom(campo => campo.Ubicacion.Y))
             .ForMember(x => x.Longitud, dto => dto.MapFrom(campo => campo.Ubicacion.X));
 
 
@@ -102,7 +102,7 @@ namespace PeliculasApi.Utils
 
             return resultado;
         }
-        private List<PeliculasActores> MapearPeliculasActores(PeliculaCreacionDTO peliculaCreacionDTO, Pelicula pelicula )
+        private List<PeliculasActores> MapearPeliculasActores(PeliculaCreacionDTO peliculaCreacionDTO, Pelicula pelicula)
         {
             var resultado = new List<PeliculasActores>();
 
@@ -113,7 +113,7 @@ namespace PeliculasApi.Utils
 
             foreach (var actor in peliculaCreacionDTO.Actores)
             {
-                resultado.Add(new PeliculasActores() {  ActorId = actor.Id,Personaje = actor.Personaje });
+                resultado.Add(new PeliculasActores() { ActorId = actor.Id, Personaje = actor.Personaje });
             }
 
             return resultado;
@@ -124,12 +124,12 @@ namespace PeliculasApi.Utils
         {
             var resultado = new List<PeliculasGenero>();
 
-            if(peliculaCreacionDTO.GenerosIds == null)
+            if (peliculaCreacionDTO.GenerosIds == null)
             {
                 return resultado;
             }
 
-            foreach(var id in peliculaCreacionDTO.GenerosIds)
+            foreach (var id in peliculaCreacionDTO.GenerosIds)
             {
                 resultado.Add(new PeliculasGenero() { GeneroId = id });
             }

@@ -9,7 +9,7 @@
         public int RecordsPorPagina
         {
             get { return recordsPorPagina; }
-            set { recordsPorPagina = (value  > cantidadMaximaPorPagina)? cantidadMaximaPorPagina:value; }
+            set { recordsPorPagina = (value > cantidadMaximaPorPagina) ? cantidadMaximaPorPagina : value; }
         }
     }
 }

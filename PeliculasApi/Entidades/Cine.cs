@@ -9,7 +9,7 @@ namespace PeliculasApi.Entidades
     {
         public int Id { get; set; }
         [Required]
-        [StringLength(maximumLength:50)]
+        [StringLength(maximumLength: 50)]
         [PrimeraLetraMayuscula]
         public string Nombre { get; set; }
         public Point Ubicacion { get; set; }

@@ -8,7 +8,7 @@ namespace PeliculasApi.Entidades.DTOs
 {
     public class PeliculaCreacionDTO
     {
-      
+
         public string Titulo { get; set; }
         public string Resumen { get; set; }
         public string Trailer { get; set; }
@@ -19,11 +19,11 @@ namespace PeliculasApi.Entidades.DTOs
          * ayuda al modelBinder a recibir los datos del FromForm
          */
 
-        [ModelBinder(BinderType =typeof(TypeBinder<List<int>>))]
+        [ModelBinder(BinderType = typeof(TypeBinder<List<int>>))]
         public List<int> GenerosIds { get; set; }
         [ModelBinder(BinderType = typeof(TypeBinder<List<int>>))]
         public List<int> CinesIds { get; set; }
         [ModelBinder(BinderType = typeof(TypeBinder<List<ActorPeliculaCreacionDTO>>))]
-        public List<ActorPeliculaCreacionDTO> Actores { get; set;}
+        public List<ActorPeliculaCreacionDTO> Actores { get; set; }
     }
 }

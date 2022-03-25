@@ -23,13 +23,13 @@ namespace PeliculasApi.Utils
                 return Task.CompletedTask;
             }
             var nombreArchivo = Path.GetFileName(ruta);
-            var directorioArchivo = Path.Combine(environment.WebRootPath,contenedor,nombreArchivo);
+            var directorioArchivo = Path.Combine(environment.WebRootPath, contenedor, nombreArchivo);
 
             if (File.Exists(directorioArchivo))
             {
                 File.Delete(directorioArchivo);
             }
-            return Task.CompletedTask;  
+            return Task.CompletedTask;
         }
 
         public async Task<string> EditarArchivo(string contenedor, IFormFile archivo, string ruta)
@@ -46,11 +46,11 @@ namespace PeliculasApi.Utils
 
             if (!Directory.Exists(folder))
             {
-                Directory.CreateDirectory(folder);  
+                Directory.CreateDirectory(folder);
             }
 
             string ruta = Path.Combine(folder, nombreArchivo);
-            
+
             using (var memoryStrem = new MemoryStream())
             {
                 await archivo.CopyToAsync(memoryStrem);
@@ -60,7 +60,7 @@ namespace PeliculasApi.Utils
 
             var urlActual = $"{contextAccessor.HttpContext.Request.Scheme}://{contextAccessor.HttpContext.Request.Host}";
             var rutaParaDb = Path.Combine(urlActual, contenedor, nombreArchivo).Replace("\\", "/");
-            return rutaParaDb;  
+            return rutaParaDb;
         }
     }
 }

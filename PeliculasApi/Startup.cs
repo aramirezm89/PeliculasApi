@@ -26,7 +26,7 @@ namespace PeliculasApi
         {
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
             Configuration = configuration;
-            
+
         }
 
         public IConfiguration Configuration { get; }
@@ -39,7 +39,7 @@ namespace PeliculasApi
 
             //agregar GeometryFactory a AUTOMAPPER
             services.AddSingleton(provider =>
-          
+
                 new MapperConfiguration(config =>
                 {
                     var geometryFactory = provider.GetRequiredService<GeometryFactory>();
@@ -63,7 +63,7 @@ namespace PeliculasApi
              * 
              * UseNetTopologySuite libreria de entityFrameWorkCore que sirve para datos espaciales (longitud,latitud)
              */
-            services.AddDbContext<ApplicationDbContext>(options => 
+            services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(Configuration.GetConnectionString("LocalHostConnection"),
             sqlServer => sqlServer.UseNetTopologySuite()));
 
@@ -89,7 +89,7 @@ namespace PeliculasApi
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["llavejwt"])), //el valor de llavejwt se encuentra en appsettings.json
                     ClockSkew = TimeSpan.Zero
 
-                }) ;
+                });
 
             //implementacion para utilizar claims como proteccion de determinados endpoints.
             services.AddAuthorization(opciones =>
@@ -120,10 +120,10 @@ namespace PeliculasApi
 
                 options.AddDefaultPolicy(builder =>
                 {
-                builder.WithOrigins(frontEndURL).AllowAnyMethod().AllowAnyHeader()
-                    //cabecera que deseo este expuesta en el frontEnd para obtener total de registros de una entidad en BD
-                    //definida en clase HttpContextExtensions con el fin de paginacion.
-                    .WithExposedHeaders(new string[]{ "cantidadTotalRegistros"});
+                    builder.WithOrigins(frontEndURL).AllowAnyMethod().AllowAnyHeader()
+                        //cabecera que deseo este expuesta en el frontEnd para obtener total de registros de una entidad en BD
+                        //definida en clase HttpContextExtensions con el fin de paginacion.
+                        .WithExposedHeaders(new string[] { "cantidadTotalRegistros" });
                 });
             });
 
@@ -150,7 +150,7 @@ namespace PeliculasApi
             }
 
             app.UseHttpsRedirection();
-            app.UseStaticFiles();   
+            app.UseStaticFiles();
             app.UseRouting();
 
             app.UseCors();

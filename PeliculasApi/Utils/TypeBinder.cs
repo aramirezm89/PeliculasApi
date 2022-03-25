@@ -11,9 +11,9 @@ namespace PeliculasApi.Utils
             var nombrePropiedad = bindingContext.ModelName;
             var valor = bindingContext.ValueProvider.GetValue(nombrePropiedad);
 
-            if(valor == ValueProviderResult.None) //pregunta si es que no hay ningun valor
+            if (valor == ValueProviderResult.None) //pregunta si es que no hay ningun valor
             {
-                return Task.CompletedTask;  
+                return Task.CompletedTask;
             }
 
             try
@@ -25,7 +25,7 @@ namespace PeliculasApi.Utils
             {
                 bindingContext.ModelState.TryAddModelError(nombrePropiedad, "El valor dado no es del tipo de dato esperado.");
             }
-            return Task.CompletedTask;  
+            return Task.CompletedTask;
         }
     }
 }

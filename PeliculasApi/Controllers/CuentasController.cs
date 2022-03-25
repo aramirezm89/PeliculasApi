@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -31,7 +30,7 @@ namespace PeliculasApi.Controllers
 
         //se inyecta UserManager al contructor de la clase y se asigna como campo con el fin de poder crear un usuario.
         //se inyecta SigningManager al constructor de la clase y se asigna como campo con el fin de poder trabajar con el login.
-        public CuentasController(UserManager<IdentityUser> userManager, IConfiguration configuration,SignInManager<IdentityUser>
+        public CuentasController(UserManager<IdentityUser> userManager, IConfiguration configuration, SignInManager<IdentityUser>
             signInManager, ApplicationDbContext db, IMapper mapper)
         {
             this.userManager = userManager;
@@ -41,37 +40,56 @@ namespace PeliculasApi.Controllers
             this.mapper = mapper;
         }
 
-        [HttpGet]
+        [HttpGet("listadoUsuarios")]
         public async Task<ActionResult<List<UsuarioDTO>>> ListadoUsuarios([FromQuery] PaginacionDTO paginacionDTO)
         {
             var queryable = _db.Users.AsQueryable();
+
             await HttpContext.InsertarParametrosEnCabecera(queryable); // pasa la cantidad de registros que contiene la tabla Users.
 
-            var usuarios = await queryable.OrderBy(u => u.Email).Paginar(paginacionDTO).ToListAsync();
+            var usuariosYsuClaimValue = await (from usu in _db.Users
+                                               join claims in _db.UserClaims
+                                               on usu.Id equals claims.UserId into usuarioClaims
+                                               from users in usuarioClaims.DefaultIfEmpty()
+                                               select new
+                                               {
+                                                   usu.Id,
+                                                   usu.Email,
+                                                   users.ClaimValue
+                                               }).OrderBy(x => x.Email).Paginar(paginacionDTO).ToListAsync();
 
-            return mapper.Map<List<UsuarioDTO>>(usuarios);
+
+
+            List<UsuarioDTO> dto = new List<UsuarioDTO>();
+
+            foreach (var item in usuariosYsuClaimValue)
+            {
+                dto.Add(new UsuarioDTO { Id = item.Id, Email = item.Email, claimValue = item.ClaimValue });
+            }
+
+            return dto;
         }
 
         [HttpPost("hacerAdmin")]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,Policy ="EsAdmin")]
-        public async Task<ActionResult> HacerAdmin([FromBody]string usuarioID)
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "EsAdmin")]
+        public async Task<ActionResult> HacerAdmin([FromBody] string usuarioID)
         {
             var usuario = await userManager.FindByIdAsync(usuarioID);
 
             await userManager.AddClaimAsync(usuario, new Claim("role", "admin"));
 
-             return new JsonResult(new { success = true, message = "el usuario ahora tiene permisos de  administrador", code = 200 });
+            return new JsonResult(new { success = true, message = "el usuario ahora tiene permisos de  administrador", code = 200 });
         }
 
         [HttpPost("removerAdmin")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "EsAdmin")]
-        public async Task<ActionResult> removerAdmin([FromBody]string usuarioID)
+        public async Task<ActionResult> removerAdmin([FromBody] string usuarioID)
         {
             var usuario = await userManager.FindByIdAsync(usuarioID);
 
             await userManager.RemoveClaimAsync(usuario, new Claim("role", "admin"));
 
-            return new JsonResult(new { success = true, message = "el usuario ahora tiene permisos de  administrador", code = 200 });
+            return new JsonResult(new { success = true, message = "el usuario ya no tiene permisos de administrador", code = 200 });
         }
 
         [HttpPost("crear")]
@@ -91,12 +109,12 @@ namespace PeliculasApi.Controllers
             {
                 var tokenCreado = await ConstruirToken(credenciales);
                 //si el usuario es creado correctamente se crea el token mediante el metodo ConstruirToken
-                return new JsonResult(new { success = true, message = "Usuario creado con exito" , token= tokenCreado, code = 200});
-                
+                return new JsonResult(new { success = true, message = "Usuario creado con exito", token = tokenCreado, code = 200 });
+
             }
             else
             {
-                return new JsonResult(new { success = false, message = "Error",  code = 400 });
+                return new JsonResult(new { success = false, message = "Error", code = 400 });
             }
 
         }
@@ -105,14 +123,14 @@ namespace PeliculasApi.Controllers
         public async Task<ActionResult<RespuestaAutenticacion>> Login([FromBody] CredencialesUsuario credenciales)
         {
             //resultado: contiene el resultado de si el usuario y contraseña utilizados en el login son correctos.
-            var resultado = await signInManager.PasswordSignInAsync(credenciales.Email,credenciales.Password,isPersistent:false,lockoutOnFailure:false);
+            var resultado = await signInManager.PasswordSignInAsync(credenciales.Email, credenciales.Password, isPersistent: false, lockoutOnFailure: false);
 
             if (resultado.Succeeded)
             {
                 var tokenCreado = await ConstruirToken(credenciales);
                 //si el resultado es correecto se crea un token.
                 return new JsonResult(new { success = true, message = $"Bienvenido", token = tokenCreado, code = 200 });
-             
+
             }
             else
             {
@@ -124,14 +142,14 @@ namespace PeliculasApi.Controllers
         {
             var claims = new List<Claim>()
             {
-              new Claim("email",credenciales.Email),              
+              new Claim("email",credenciales.Email),
             };
 
             //usuario: contiene el usuario buscado en la base de dato segun el email que tenga.
-            var usuario  =  await userManager.FindByEmailAsync(credenciales.Email);  
+            var usuario = await userManager.FindByEmailAsync(credenciales.Email);
 
             //claimsDB: busca en la base de dato las claims del usuario.
-            var claimsDB = await userManager.GetClaimsAsync(usuario);   
+            var claimsDB = await userManager.GetClaimsAsync(usuario);
 
             //agrega a la lista todos los claims que existan en la base de datos que correspondan al usuario.
             claims.AddRange(claimsDB);
@@ -139,7 +157,7 @@ namespace PeliculasApi.Controllers
             //llave: se crea un llave a partir de la llavejwt cuyo valor se encuentra en appsettings.
             var llave = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["llavejwt"]));
 
-            var creds = new SigningCredentials(llave,SecurityAlgorithms.HmacSha256);
+            var creds = new SigningCredentials(llave, SecurityAlgorithms.HmacSha256);
 
             //expiracion: contiene el tiempo en el que el token sera valido;
             var expiracion = DateTime.UtcNow.AddDays(1);
@@ -156,7 +174,7 @@ namespace PeliculasApi.Controllers
         }
 
 
-       
+
 
 
     }

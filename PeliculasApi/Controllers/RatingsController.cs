@@ -7,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 using PeliculasApi.Entidades;
 using PeliculasApi.Entidades.DTOs;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace PeliculasApi.Controllers
@@ -20,7 +19,7 @@ namespace PeliculasApi.Controllers
         private readonly ApplicationDbContext _db;
         private readonly UserManager<IdentityUser> userManager;
 
-        public RatingsController(IMapper mapper,ApplicationDbContext db, UserManager<IdentityUser> userManager )
+        public RatingsController(IMapper mapper, ApplicationDbContext db, UserManager<IdentityUser> userManager)
         {
             this.mapper = mapper;
             this._db = db;
@@ -50,9 +49,9 @@ namespace PeliculasApi.Controllers
                 ratingActual.Puntuacion = ratingDTO.Puntuacion;
             }
 
-            await _db.SaveChangesAsync();   
+            await _db.SaveChangesAsync();
 
-            return new JsonResult(new {code = 200, message ="Voto Realizado",success = true});
+            return new JsonResult(new { code = 200, message = "Voto Realizado", success = true });
 
         }
     }

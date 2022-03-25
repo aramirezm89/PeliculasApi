@@ -10,7 +10,7 @@ namespace PeliculasApi.Entidades.DTOs
         public List<CineDTO> CinesSeleccionados { get; set; }
         public List<CineDTO> CinesNoSeleccionados { get; set; }
         public List<PeliculaActorDTO> Actores { get; set; }
-      
+
 
     }
 }

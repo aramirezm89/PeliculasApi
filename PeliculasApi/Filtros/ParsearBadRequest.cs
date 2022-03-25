@@ -12,15 +12,15 @@ namespace PeliculasApi.Filtros
             var casteoResult = context.Result as IStatusCodeActionResult;
             if (casteoResult == null)
             {
-                return; 
+                return;
             }
             var codigoStatus = casteoResult.StatusCode;
-            if(codigoStatus == 400)
+            if (codigoStatus == 400)
             {
                 var respuesta = new List<string>();
                 var resultadoActual = context.Result as BadRequestObjectResult;
 
-                if(resultadoActual.Value is string)
+                if (resultadoActual.Value is string)
                 {
                     respuesta.Add(resultadoActual.Value.ToString());
                 }
@@ -35,13 +35,13 @@ namespace PeliculasApi.Filtros
                     }
                 }
 
-                context.Result = new BadRequestObjectResult(respuesta); 
+                context.Result = new BadRequestObjectResult(respuesta);
             }
         }
 
         public void OnActionExecuting(ActionExecutingContext context)
         {
-        
+
         }
     }
 }

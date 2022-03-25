@@ -16,7 +16,7 @@ namespace PeliculasApi.Controllers
 {
     [ApiController]
     [Route("api/peliculas")]
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,Policy = "EsAdmin")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "EsAdmin")]
     public class PeliculasController : ControllerBase
     {
         private readonly IMapper mapper;
@@ -36,7 +36,7 @@ namespace PeliculasApi.Controllers
 
         [HttpGet("{id:int}")]
         [AllowAnonymous]
-        public async Task<ActionResult<PeliculaDTO>> Get( int id)
+        public async Task<ActionResult<PeliculaDTO>> Get(int id)
         {
             var pelicula = await _db.Peliculas
                 .Include(x => x.PeliculasGenero).ThenInclude(x => x.Genero)
@@ -59,7 +59,7 @@ namespace PeliculasApi.Controllers
               de acuerdo a la peliculaId y calculo el promedio del campo Puntuacion.
             */
 
-            if(await _db.Ratings.AnyAsync(x => x.PeliculaId == id))
+            if (await _db.Ratings.AnyAsync(x => x.PeliculaId == id))
             {
                 dto.PromedioVoto = await _db.Ratings.Where(x => x.PeliculaId == id).AverageAsync(x => x.Puntuacion);
 
@@ -67,7 +67,7 @@ namespace PeliculasApi.Controllers
                 if (HttpContext.User.Identity.IsAuthenticated)
                 {
                     var email = HttpContext.User.Claims.FirstOrDefault(x => x.Type == "email").Value;
-                    var usuario  = await userManager.FindByEmailAsync(email);
+                    var usuario = await userManager.FindByEmailAsync(email);
                     var usuarioId = usuario.Id;
 
                     //ratingDB: esta consulta permite saber si el usuario ha votado por la pelicula
@@ -78,25 +78,25 @@ namespace PeliculasApi.Controllers
                     {
                         dto.VotoUsuario = ratingDB.Puntuacion;
                     }
-                   
+
                 }
             }
 
-            dto.Actores =  dto.Actores.OrderBy(x => x.Orden).ToList();
+            dto.Actores = dto.Actores.OrderBy(x => x.Orden).ToList();
             return dto;
         }
         [HttpGet("generos/{id:int}")]
-        public async Task<ActionResult<List<GeneroDTO>>>GetGeneros([FromRoute] int id)
+        public async Task<ActionResult<List<GeneroDTO>>> GetGeneros([FromRoute] int id)
         {
-           
+
             var generos = await _db.PeliculasGeneros.Where(p => p.PeliculaId == id).ToListAsync();
-            List<GeneroDTO> listaGenero = new List<GeneroDTO>();  
+            List<GeneroDTO> listaGenero = new List<GeneroDTO>();
             foreach (var item in generos)
             {
                 var nombreGenero = await _db.Generos.FirstOrDefaultAsync(g => g.Id == item.GeneroId);
-                listaGenero.Add(mapper.Map<GeneroDTO>(nombreGenero));  
+                listaGenero.Add(mapper.Map<GeneroDTO>(nombreGenero));
             }
-           
+
 
             return listaGenero;
         }
@@ -120,10 +120,10 @@ namespace PeliculasApi.Controllers
                           .ToListAsync();
             var resultado = new LandingPageDTO();
 
-           resultado.ProximosEstrenos = mapper.Map<List<PeliculaDTO>>(proximosEstrenos);   
-           resultado.EnCines = mapper.Map<List<PeliculaDTO>>(enCines);   
+            resultado.ProximosEstrenos = mapper.Map<List<PeliculaDTO>>(proximosEstrenos);
+            resultado.EnCines = mapper.Map<List<PeliculaDTO>>(enCines);
 
-            return resultado;   
+            return resultado;
         }
 
         [HttpGet("filtrar")]
@@ -144,10 +144,10 @@ namespace PeliculasApi.Controllers
 
             if (peliculasFiltrarDTO.ProximosEstrenos)
             {
-                peliculasQueryable = peliculasQueryable.Where(p  => p.FechaLanzamiento > DateTime.Today);
+                peliculasQueryable = peliculasQueryable.Where(p => p.FechaLanzamiento > DateTime.Today);
             }
 
-            if(peliculasFiltrarDTO.GeneroId != 0)
+            if (peliculasFiltrarDTO.GeneroId != 0)
             {
                 peliculasQueryable = peliculasQueryable.Where(p => p.PeliculasGenero
                 .Select(g => g.GeneroId).Contains(peliculasFiltrarDTO.GeneroId));
@@ -157,7 +157,7 @@ namespace PeliculasApi.Controllers
 
             var peliculas = await peliculasQueryable.Paginar(peliculasFiltrarDTO.PaginacionDTO).ToListAsync();
 
-            return mapper.Map<List<PeliculaDTO>>(peliculas);    
+            return mapper.Map<List<PeliculaDTO>>(peliculas);
         }
 
         [HttpPost]
@@ -175,10 +175,10 @@ namespace PeliculasApi.Controllers
 
                 EscribirOrdenActores(pelicula);
 
-                _db.Add(pelicula); 
+                _db.Add(pelicula);
                 await _db.SaveChangesAsync();
                 var peliculaCreada = await _db.Peliculas.FirstOrDefaultAsync(p => p.Titulo == peliculaCreacionDTO.Titulo);
-                return new JsonResult(new { succes = true, message = "Registro guardado.", code = 200,idPelicula = peliculaCreada.Id });
+                return new JsonResult(new { succes = true, message = "Registro guardado.", code = 200, idPelicula = peliculaCreada.Id });
             }
             return new JsonResult(new { succes = false, message = "EL Titulo de la pelicula ya se encuentra en la base de datos.", code = 500 });
 
@@ -192,11 +192,11 @@ namespace PeliculasApi.Controllers
         public async Task<ActionResult<PeliculasPostGetDTO>> PostGet()
         {
             var cines = await _db.Cines.ToListAsync();
-            var generos =  await _db.Generos.ToListAsync();
+            var generos = await _db.Generos.ToListAsync();
             var cinesDTO = mapper.Map<List<CineDTO>>(cines);
             var generosDTO = mapper.Map<List<GeneroDTO>>(generos);
 
-            return new PeliculasPostGetDTO() { Generos = generosDTO , Cines = cinesDTO};
+            return new PeliculasPostGetDTO() { Generos = generosDTO, Cines = cinesDTO };
         }
 
         [HttpGet("PutGet/{id:int}")]
@@ -231,21 +231,21 @@ namespace PeliculasApi.Controllers
         }
 
         [HttpPut("{id:int}")]
-        public async Task<ActionResult> Put([FromRoute]int id, [FromForm] PeliculaCreacionDTO peliculaCreacionDTO)
+        public async Task<ActionResult> Put([FromRoute] int id, [FromForm] PeliculaCreacionDTO peliculaCreacionDTO)
         {
             var pelicula = await _db.Peliculas
                 .Include(x => x.PeliculasActores)
                 .Include(x => x.PeliculasGenero)
                 .Include(x => x.PeliculasCine)
-                .FirstOrDefaultAsync(x => x.Id == id);  
+                .FirstOrDefaultAsync(x => x.Id == id);
 
-            if(pelicula == null)
+            if (pelicula == null)
             {
                 return NotFound();
-            }  
+            }
             pelicula = mapper.Map(peliculaCreacionDTO, pelicula);
 
-            if(peliculaCreacionDTO.Poster != null)
+            if (peliculaCreacionDTO.Poster != null)
             {
                 pelicula.Poster = await almacenadorArchivos.EditarArchivo(contenedor, peliculaCreacionDTO.Poster, pelicula.Poster);
             }
@@ -257,26 +257,26 @@ namespace PeliculasApi.Controllers
         }
         private void EscribirOrdenActores(Pelicula pelicula)
         {
-            if(pelicula.PeliculasActores != null)
+            if (pelicula.PeliculasActores != null)
             {
                 pelicula.PeliculasActores.OrderBy(p => p.Orden);
             }
         }
-      
+
         [HttpDelete("{id:int}")]
 
         public async Task<ActionResult> Delete(int id)
         {
             var pelicula = await _db.Peliculas.FirstOrDefaultAsync(p => p.Id == id);
 
-            if(pelicula == null)
+            if (pelicula == null)
             {
                 return NotFound();
             }
 
             _db.Remove(pelicula);
             await _db.SaveChangesAsync();
-            await almacenadorArchivos.BorrarArchivo(pelicula.Poster,contenedor);
+            await almacenadorArchivos.BorrarArchivo(pelicula.Poster, contenedor);
             return new JsonResult(new { succes = false, message = "Registro eliminado", code = 200 });
         }
 

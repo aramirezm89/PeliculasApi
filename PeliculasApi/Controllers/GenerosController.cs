@@ -7,17 +7,15 @@ using Microsoft.Extensions.Logging;
 using PeliculasApi.Entidades;
 using PeliculasApi.Entidades.DTOs;
 using PeliculasApi.Utils;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 
 namespace PeliculasApi.Controllers
 {
     [Route("api/generos")]
     [ApiController]
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme,Policy = "EsAdmin")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Policy = "EsAdmin")]
     public class GenerosController : ControllerBase
     {
 
@@ -26,7 +24,7 @@ namespace PeliculasApi.Controllers
         private readonly ApplicationDbContext _db;
         private readonly IMapper mapper;
 
-        public GenerosController(ILogger<GenerosController> logger,ApplicationDbContext db,IMapper mapper)
+        public GenerosController(ILogger<GenerosController> logger, ApplicationDbContext db, IMapper mapper)
         {
 
             this.logger = logger;
@@ -44,7 +42,7 @@ namespace PeliculasApi.Controllers
              * Metodo InsertarParametrosEnCabecera: su logica se encuentra en la clase HttpContextExtensions la 
              * cual se utilizoo para hacen un metodo de   extension de HttpContext
              */
-            var generosQueryable =  _db.Generos.AsQueryable();
+            var generosQueryable = _db.Generos.AsQueryable();
             await HttpContext.InsertarParametrosEnCabecera(generosQueryable);
 
             /*
@@ -58,7 +56,7 @@ namespace PeliculasApi.Controllers
              * El retorno es una lista de tipo GeneroDTO por lo cual se utiliza mapper para mapear la variable generos la
              * cual es de tipo Genero a GeneroDTO que es el tipo de dato que requiere como retorno la funcion.
              */
-            return mapper.Map<List<GeneroDTO>>(generos); 
+            return mapper.Map<List<GeneroDTO>>(generos);
         }
 
 
@@ -68,17 +66,17 @@ namespace PeliculasApi.Controllers
         public async Task<ActionResult<GeneroDTO>> Get([FromRoute] int id)
         {
             var genero = await _db.Generos.FirstOrDefaultAsync(g => g.Id == id);
-            if(genero == null)
+            if (genero == null)
             {
-                return NotFound();  
+                return NotFound();
             }
             return mapper.Map<GeneroDTO>(genero);
-          
+
         }
 
         [HttpGet("todos")]
         [AllowAnonymous]
-        public async Task <ActionResult<List<GeneroDTO>>> TodosLosGeneros()
+        public async Task<ActionResult<List<GeneroDTO>>> TodosLosGeneros()
         {
             var generos = await _db.Generos.OrderBy(g => g.Nombre).ToListAsync();
 
@@ -90,7 +88,7 @@ namespace PeliculasApi.Controllers
         {
             var ValidarGeneroRepetido = await _db.Generos.FirstOrDefaultAsync(g => g.Nombre == generoCreacionDTO.Nombre);
 
-            if(ValidarGeneroRepetido == null)
+            if (ValidarGeneroRepetido == null)
             {
                 var genero = mapper.Map<Genero>(generoCreacionDTO);
                 _db.Add(genero);
@@ -104,11 +102,11 @@ namespace PeliculasApi.Controllers
         }
 
         [HttpPut("{id:int}")]
-        public async Task< ActionResult >Put([FromBody] GeneroCreacionDTO generoCreacion,[FromRoute] int id)
+        public async Task<ActionResult> Put([FromBody] GeneroCreacionDTO generoCreacion, [FromRoute] int id)
         {
             var genero = await _db.Generos.FirstOrDefaultAsync(x => x.Id == id);
 
-            if(genero == null)
+            if (genero == null)
             {
                 return NotFound();
             }
@@ -122,17 +120,17 @@ namespace PeliculasApi.Controllers
 
         public async Task<ActionResult> Delete([FromRoute] int id)
         {
-            if(id == 0)
+            if (id == 0)
             {
                 return new JsonResult(new { succes = false, message = "Error", code = 404 });
             }
 
             var genero = await _db.Generos.FirstOrDefaultAsync(g => g.Id == id);
 
-            if(genero != null)
+            if (genero != null)
             {
                 _db.Generos.Remove(genero);
-               await _db.SaveChangesAsync();
+                await _db.SaveChangesAsync();
                 return new JsonResult(new { succes = false, message = "Registro eliminado", code = 200 });
             }
             else
@@ -140,7 +138,7 @@ namespace PeliculasApi.Controllers
                 return new JsonResult(new { succes = false, message = "El registro que desea eliminar no existe en la base de datos.", code = 404 });
             }
 
-           
+
         }
 
 
