@@ -50,12 +50,12 @@ namespace PeliculasApi.Controllers
             var usuariosYsuClaimValue = await (from usu in _db.Users
                                                join claims in _db.UserClaims
                                                on usu.Id equals claims.UserId into usuarioClaims
-                                               from users in usuarioClaims.DefaultIfEmpty()
+                                               from claims in usuarioClaims.DefaultIfEmpty()
                                                select new
                                                {
                                                    usu.Id,
                                                    usu.Email,
-                                                   users.ClaimValue
+                                                   claims.ClaimValue
                                                }).OrderBy(x => x.Email).Paginar(paginacionDTO).ToListAsync();
 
 

@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "storage1": {
+      "ignored": "true",
+      "suggestion": "true",
+      "type": "storage",
+      "connectionId": "ConnectionStrings:AzureStorage"
+    },
+    "identityapp1": {
+      "ignored": "true",
+      "suggestion": "true",
+      "type": "identityapp",
+      "connectionId": ""
+    },
+    "mssql1": {
+      "secretStore": "AzureAppSettings",
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Sql/servers/peliculasapidbserver1989/databases/PeliculasApi_db",
+      "type": "mssql.azure",
+      "connectionId": "LocalHostConnection"
+    }
+  }
+}
